@@ -100,22 +100,32 @@ Edit `servers.json` to configure your environment:
 
 Each server entry supports:
 
-| Field             | Description                                | Required          |
-| ----------------- | ------------------------------------------ | ----------------- |
-| `name`            | Unique identifier for the server           | Yes               |
-| `vmid`            | Proxmox VM ID                              | Yes               |
-| `proxmox_host`    | Key from `proxmox_hosts` section           | Yes               |
-| `ip`              | Server IP address                          | Yes               |
-| `user`            | SSH username                               | Yes               |
-| `auth_method`     | `"key"` or `"password"` (default: `"key"`) | No                |
-| `ssh_key`         | Path to SSH private key (for key auth)     | If using key      |
-| `password`        | SSH password (for password auth)           | If using password |
-| `os_type`         | Operating system (informational)           | No                |
-| `update_commands` | Array of commands to execute               | Yes               |
-| `enabled`         | Whether to process this server             | Yes               |
-| `comment`         | Notes (ignored by script)                  | No                |
+| Field             | Description                                           | Required          |
+| ----------------- | ----------------------------------------------------- | ----------------- |
+| `name`            | Unique identifier for the server                      | Yes               |
+| `vmid`            | Proxmox VM ID                                         | Yes               |
+| `proxmox_host`    | Key from `proxmox_hosts` section                      | Yes               |
+| `ip`              | Server IP address                                     | Yes               |
+| `user`            | SSH username                                          | Yes               |
+| `auth_method`     | `"key"` or `"password"` (default: `"key"`)            | No                |
+| `ssh_key`         | Path to SSH private key (for key auth)                | If using key      |
+| `password`        | SSH password (for password auth)                      | If using password |
+| `sudo_password`   | Password for sudo commands (null = passwordless sudo) | No                |
+| `os_type`         | Operating system (informational)                      | No                |
+| `update_commands` | Array of commands to execute                          | Yes               |
+| `enabled`         | Whether to process this server                        | Yes               |
+| `comment`         | Notes (ignored by script)                             | No                |
 
-#### Example: Ubuntu Server with SSH Key
+### Sudo Password Handling
+
+The script supports two modes for sudo:
+
+1. **Passwordless sudo** (recommended): Set `"sudo_password": null`
+    - Configure on the server: `echo "admin ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/admin`
+2. **Sudo with password**: Set `"sudo_password": "your-sudo-password"`
+    - The script will automatically pipe the password to sudo commands
+
+#### Example: Ubuntu Server with SSH Key (passwordless sudo)
 
 ```json
 {
@@ -127,6 +137,7 @@ Each server entry supports:
     "auth_method": "key",
     "ssh_key": "~/.ssh/id_rsa",
     "password": null,
+    "sudo_password": null,
     "os_type": "ubuntu",
     "update_commands": [
         "sudo apt update",
@@ -137,7 +148,7 @@ Each server entry supports:
 }
 ```
 
-#### Example: Ubuntu Server with Password
+#### Example: Ubuntu Server with Password Auth and Sudo Password
 
 ```json
 {
@@ -148,7 +159,8 @@ Each server entry supports:
     "user": "admin",
     "auth_method": "password",
     "ssh_key": null,
-    "password": "my-secure-password",
+    "password": "my-ssh-password",
+    "sudo_password": "my-sudo-password",
     "os_type": "ubuntu",
     "update_commands": [
         "sudo apt update",
@@ -171,6 +183,7 @@ Each server entry supports:
     "auth_method": "key",
     "ssh_key": "~/.ssh/id_rsa",
     "password": null,
+    "sudo_password": null,
     "os_type": "centos",
     "update_commands": [
         "sudo yum makecache",
@@ -193,6 +206,7 @@ Each server entry supports:
     "auth_method": "key",
     "ssh_key": "~/.ssh/id_rsa",
     "password": null,
+    "sudo_password": null,
     "os_type": "ubuntu",
     "update_commands": [
         "sudo apt update",

@@ -410,7 +410,8 @@ run_update_commands() {
     local auth_method=$4
     local ssh_key=$5
     local password=$6
-    local commands_json=$7
+    local sudo_password=$7
+    local commands_json=$8
     
     # Build SSH command based on auth method
     local ssh_cmd
@@ -436,17 +437,29 @@ run_update_commands() {
         
         local output
         local exit_code
+        local remote_cmd="${cmd}"
+        
+        # If command contains sudo and we have a sudo password, pipe it
+        if [[ "${cmd}" == *"sudo"* && -n "${sudo_password}" && "${sudo_password}" != "null" ]]; then
+            # Use -S flag to read password from stdin, -p '' to suppress prompt
+            remote_cmd="echo '${sudo_password}' | sudo -S -p '' ${cmd#sudo }"
+        fi
         
         # Special handling for reboot command - don't wait for response
         if [[ "${cmd}" == *"reboot"* ]]; then
             log "INFO" "Initiating reboot (not waiting for completion)..."
-            eval "timeout 10 ${ssh_cmd} '${user}@${ip}' '${cmd}'" 2>&1 || true
+            eval "timeout 10 ${ssh_cmd} '${user}@${ip}' '${remote_cmd}'" 2>&1 || true
             log "SUCCESS" "Reboot command sent"
             continue
         fi
         
-        output=$(eval "timeout 600 ${ssh_cmd} '${user}@${ip}' '${cmd}'" 2>&1)
+        output=$(eval "timeout 600 ${ssh_cmd} '${user}@${ip}' '${remote_cmd}'" 2>&1)
         exit_code=$?
+        
+        # Filter out sudo password prompt artifacts from output
+        if [[ -n "${sudo_password}" && "${sudo_password}" != "null" ]]; then
+            output=$(echo "${output}" | grep -v "^\[sudo\] password" || true)
+        fi
         
         if [[ -n "${output}" ]]; then
             # Truncate very long output for display
@@ -492,6 +505,7 @@ process_server() {
     local auth_method=$(echo "${server_json}" | jq -r '.auth_method // "key"')
     local ssh_key=$(echo "${server_json}" | jq -r '.ssh_key')
     local password=$(echo "${server_json}" | jq -r '.password')
+    local sudo_password=$(echo "${server_json}" | jq -r '.sudo_password')
     local enabled=$(echo "${server_json}" | jq -r '.enabled')
     local commands=$(echo "${server_json}" | jq -c '.update_commands')
     
@@ -510,6 +524,11 @@ process_server() {
     log "INFO" "  IP: ${ip}"
     log "INFO" "  User: ${user}"
     log "INFO" "  Auth Method: ${auth_method}"
+    if [[ -n "${sudo_password}" && "${sudo_password}" != "null" ]]; then
+        log "INFO" "  Sudo: password provided"
+    else
+        log "INFO" "  Sudo: passwordless (NOPASSWD)"
+    fi
     
     # Step 1: Delete old snapshot
     if [[ "${SKIP_SNAPSHOTS}" != "true" ]]; then
@@ -531,7 +550,7 @@ process_server() {
     
     # Step 3: Run update commands
     if [[ "${SKIP_UPDATES}" != "true" ]]; then
-        if ! run_update_commands "${name}" "${ip}" "${user}" "${auth_method}" "${ssh_key}" "${password}" "${commands}"; then
+        if ! run_update_commands "${name}" "${ip}" "${user}" "${auth_method}" "${ssh_key}" "${password}" "${sudo_password}" "${commands}"; then
             log "ERROR" "Update commands failed for ${name}"
             FAILED_SERVERS+=("${name} (update commands failed)")
             return 1

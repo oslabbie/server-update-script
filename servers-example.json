@@ -4,7 +4,8 @@
         "ssh_options": "-o StrictHostKeyChecking=no -o ConnectTimeout=10",
         "snapshot_name": "server_patching",
         "log_dir": "./logs",
-        "parallel": false
+        "parallel": false,
+        "command_timeout": 600
     },
     "proxmox_hosts": {
         "pve1": {
@@ -39,13 +40,15 @@
             "auth_method": "key",
             "ssh_key": "~/.ssh/id_rsa",
             "password": null,
+            "sudo_password": null,
             "os_type": "ubuntu",
             "update_commands": [
                 "sudo apt update",
                 "sudo apt upgrade -y",
                 "sudo reboot now"
             ],
-            "enabled": true
+            "enabled": true,
+            "comment": "sudo_password: null means passwordless sudo, or set to the sudo password string"
         },
         {
             "name": "db-server-01",
@@ -56,6 +59,7 @@
             "auth_method": "key",
             "ssh_key": "~/.ssh/id_rsa",
             "password": null,
+            "sudo_password": null,
             "os_type": "ubuntu",
             "update_commands": [
                 "sudo apt update",
@@ -73,6 +77,7 @@
             "auth_method": "password",
             "ssh_key": null,
             "password": "server-password-here",
+            "sudo_password": "sudo-password-here",
             "os_type": "ubuntu",
             "update_commands": [
                 "sudo apt update",
@@ -80,7 +85,7 @@
                 "sudo reboot now"
             ],
             "enabled": true,
-            "comment": "Example using password authentication"
+            "comment": "Example using password authentication with sudo password"
         },
         {
             "name": "legacy-centos-01",
@@ -91,6 +96,7 @@
             "auth_method": "key",
             "ssh_key": "~/.ssh/id_rsa",
             "password": null,
+            "sudo_password": null,
             "os_type": "centos",
             "update_commands": [
                 "sudo yum makecache",
@@ -108,6 +114,7 @@
             "auth_method": "key",
             "ssh_key": "~/.ssh/id_rsa",
             "password": null,
+            "sudo_password": null,
             "os_type": "centos",
             "update_commands": [
                 "sudo yum makecache",
@@ -125,6 +132,7 @@
             "auth_method": "key",
             "ssh_key": "~/.ssh/id_rsa",
             "password": null,
+            "sudo_password": null,
             "os_type": "ubuntu",
             "update_commands": ["sudo apt update", "sudo apt upgrade -y"],
             "enabled": false,
