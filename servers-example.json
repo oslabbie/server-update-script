@@ -1,0 +1,134 @@
+{
+    "settings": {
+        "ssh_timeout": 30,
+        "ssh_options": "-o StrictHostKeyChecking=no -o ConnectTimeout=10",
+        "snapshot_name": "server_patching",
+        "log_dir": "./logs",
+        "parallel": false
+    },
+    "proxmox_hosts": {
+        "pve1": {
+            "host": "192.168.1.10",
+            "user": "root",
+            "auth_method": "key",
+            "ssh_key": "~/.ssh/id_rsa",
+            "password": null
+        },
+        "pve2": {
+            "host": "192.168.1.11",
+            "user": "root",
+            "auth_method": "key",
+            "ssh_key": "~/.ssh/id_rsa",
+            "password": null
+        },
+        "pve3": {
+            "host": "192.168.1.12",
+            "user": "root",
+            "auth_method": "password",
+            "ssh_key": null,
+            "password": "your-proxmox-password-here"
+        }
+    },
+    "servers": [
+        {
+            "name": "web-server-01",
+            "vmid": 100,
+            "proxmox_host": "pve1",
+            "ip": "192.168.1.20",
+            "user": "admin",
+            "auth_method": "key",
+            "ssh_key": "~/.ssh/id_rsa",
+            "password": null,
+            "os_type": "ubuntu",
+            "update_commands": [
+                "sudo apt update",
+                "sudo apt upgrade -y",
+                "sudo reboot now"
+            ],
+            "enabled": true
+        },
+        {
+            "name": "db-server-01",
+            "vmid": 101,
+            "proxmox_host": "pve1",
+            "ip": "192.168.1.21",
+            "user": "admin",
+            "auth_method": "key",
+            "ssh_key": "~/.ssh/id_rsa",
+            "password": null,
+            "os_type": "ubuntu",
+            "update_commands": [
+                "sudo apt update",
+                "sudo apt upgrade -y",
+                "sudo reboot now"
+            ],
+            "enabled": true
+        },
+        {
+            "name": "app-server-01",
+            "vmid": 200,
+            "proxmox_host": "pve2",
+            "ip": "192.168.1.30",
+            "user": "admin",
+            "auth_method": "password",
+            "ssh_key": null,
+            "password": "server-password-here",
+            "os_type": "ubuntu",
+            "update_commands": [
+                "sudo apt update",
+                "sudo apt upgrade -y",
+                "sudo reboot now"
+            ],
+            "enabled": true,
+            "comment": "Example using password authentication"
+        },
+        {
+            "name": "legacy-centos-01",
+            "vmid": 300,
+            "proxmox_host": "pve3",
+            "ip": "192.168.1.40",
+            "user": "admin",
+            "auth_method": "key",
+            "ssh_key": "~/.ssh/id_rsa",
+            "password": null,
+            "os_type": "centos",
+            "update_commands": [
+                "sudo yum makecache",
+                "sudo yum update -y",
+                "sudo reboot now"
+            ],
+            "enabled": true
+        },
+        {
+            "name": "monitoring-server",
+            "vmid": 301,
+            "proxmox_host": "pve3",
+            "ip": "192.168.1.41",
+            "user": "admin",
+            "auth_method": "key",
+            "ssh_key": "~/.ssh/id_rsa",
+            "password": null,
+            "os_type": "centos",
+            "update_commands": [
+                "sudo yum makecache",
+                "sudo yum update -y",
+                "sudo reboot now"
+            ],
+            "enabled": true
+        },
+        {
+            "name": "disabled-example",
+            "vmid": 999,
+            "proxmox_host": "pve1",
+            "ip": "192.168.1.99",
+            "user": "admin",
+            "auth_method": "key",
+            "ssh_key": "~/.ssh/id_rsa",
+            "password": null,
+            "os_type": "ubuntu",
+            "update_commands": ["sudo apt update", "sudo apt upgrade -y"],
+            "enabled": false,
+            "comment": "This server is disabled and will be skipped"
+        }
+    ]
+}
